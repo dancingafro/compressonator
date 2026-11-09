@@ -2,8 +2,8 @@
 --  - CMP_Core (cmp_core/): the block encoders (BC1-BC7). Mirrors cmp_core/CMakeLists.txt, with its
 --    SSE/AVX/AVX-512 helper libraries folded into this one project.
 --  - CMP_Compressonator (cmp_compressonatorlib/): the SDK, CMP_ConvertTexture and the codecs CMP_Core lacks
---    (ETC2 via ETCPack). Mirrors cmp_compressonatorlib/CMakeLists.txt without the optional parts (ASTC, which
---    upstream no longer supports, and Brotli-G).
+--    (ETC2 via ETCPack, ASTC). Mirrors cmp_compressonatorlib/CMakeLists.txt with OPTION_BUILD_ASTC on and without
+--    Brotli-G.
 
 local root = _SCRIPT_DIR
 local lib = root .. "/cmp_compressonatorlib"
@@ -84,7 +84,8 @@ project "CMP_Compressonator"
         lib .. "/compressonator.h",
         lib .. "/compressonator.cpp",
     }
-    for _, folder in ipairs({ "apc", "atc", "ati", "basis", "bc6h", "bc7", "block", "buffer", "dxt", "dxtc", "etc", "etc/etcpack", "gt", "common" }) do
+    -- astc + astc/arm: OPTION_BUILD_ASTC (see the define below)
+    for _, folder in ipairs({ "apc", "astc", "astc/arm", "atc", "ati", "basis", "bc6h", "bc7", "block", "buffer", "dxt", "dxtc", "etc", "etc/etcpack", "gt", "common" }) do
         files { lib .. "/" .. folder .. "/*.h", lib .. "/" .. folder .. "/*.cpp", lib .. "/" .. folder .. "/*.c", lib .. "/" .. folder .. "/*.cxx" }
     end
     files
@@ -102,7 +103,7 @@ project "CMP_Compressonator"
     includedirs
     {
         lib,
-        lib .. "/apc", lib .. "/atc", lib .. "/ati", lib .. "/basis", lib .. "/bc6h", lib .. "/bc7", lib .. "/block",
+        lib .. "/apc", lib .. "/astc", lib .. "/astc/arm", lib .. "/atc", lib .. "/ati", lib .. "/basis", lib .. "/bc6h", lib .. "/bc7", lib .. "/block",
         lib .. "/buffer", lib .. "/dxt", lib .. "/dxtc", lib .. "/etc", lib .. "/etc/etcpack", lib .. "/gt", lib .. "/common",
         root .. "/cmp_framework/common",
         root .. "/cmp_framework/common/half",
@@ -112,8 +113,9 @@ project "CMP_Compressonator"
         root .. "/cmp_core/shaders",
     }
 
-    -- The subset of the top-level CMakeLists.txt definitions the library itself uses
-    defines { "USE_ETCPACK", "ENABLE_MAKE_COMPATIBLE_API", "USE_OLD_SWIZZLE", "_CMP_CPP17_=1", "_CRT_SECURE_NO_WARNINGS", "NOMINMAX" }
+    -- The subset of the top-level CMakeLists.txt definitions the library itself uses, plus OPTION_BUILD_ASTC (off
+    -- upstream by default) for the ASTC encoder AfroEngine bakes mobile textures with
+    defines { "USE_ETCPACK", "ENABLE_MAKE_COMPATIBLE_API", "USE_OLD_SWIZZLE", "_CMP_CPP17_=1", "_CRT_SECURE_NO_WARNINGS", "NOMINMAX", "OPTION_BUILD_ASTC=1" }
 
     links { "CMP_Core" }
 
